@@ -1,0 +1,28 @@
+{
+  "name": "event-streamer",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Responds to an EventSource request with an event-stream",
+  "scripts": {
+    "start": "node server.js",
+    "build:clock": "parcel build src/server-clock.js --dist-dir dist --public-url ./",
+    "build:console": "parcel build src/server-console.js --dist-dir dist --public-url ./",
+    "build" : "parcel build src/*.js --dist-dir dist --public-url ./"
+  },
+  "keywords": [
+    "express",
+    "server-sent",
+    "events"
+  ],
+  "author": "Al Zimmerman <auraelius@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "lit": "^3.1.3",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "parcel": "^2.12.0"
+  }
+}
