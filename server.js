@@ -14,13 +14,13 @@ import {
  *    along with the JavaScript for those components
  * 2. Serve a variety of server-sent event connections with synthetic data
  *    (endpoints: `/sse-*`)
- * 
- * Quick intro to reading express code: 
+ *
+ * Quick intro to reading express code:
  * `req` is the HTTP request. `res` is the HTTP response.  The server
  * routines each convert an HTTP request into an HTTP response.
- * 
- * `res.setHeader()` sets HTTP headers for the response, 
- * `res.write()` sends HTTP text as a response but keeps connection open. 
+ *
+ * `res.setHeader()` sets HTTP headers for the response,
+ * `res.write()` sends HTTP text as a response but keeps connection open.
  * `res.send()` sends HTTP text as a response & closes the connection.
  * `res.end()` closes the connection.
  */
@@ -28,23 +28,22 @@ import {
 const app = express();
 const PORT = 3000;
 
-
-
 // different synthetic events are sent on different intervals
-// values that are multiples of each other will create 'simultaneous' 
-// events (sorted out by the JS single-threaded event loop). 
-// we'll see what happens
+// values that are multiples of each other will create 'simultaneous'
+// events (sorted out by the JS single-threaded event loop).
+// we'll see what happens,,, (this works fine)
 
-const clockTick = 100; // a new timestamp every 1/10 second
-const consoleTick = 1000; // a new line of text every second
-const templateTick = 3000; // a new panel every 10 seconds
-const updateTick = 1000; // new panel values every second
+// current values have "noise" so they DON'T occasionally co-incide
 
-
+const clockTick = 101; // a new timestamp every 1/10 second
+const consoleTick = 1004; // a new line of text
+const templateTick = 5703; // a new panel
+const fastUpdateTick = 806; // new panel values
+const slowUpdateTick = 1602; // new panel values
 
 // set up express middleware
 // set up simple default logging of all requests
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 // Serve static files from Parcel's default output directory 'dist'
 app.use(express.static('dist'));
 // send proper mime type for js files
@@ -65,6 +64,8 @@ app.get('/sse-timestamp', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // immediate arrow function makes & sends msg.
+  // interval repeats function periodically
   const sendTimestamp = () => {
     const date = new Date();
     res.write(`event:timestamp\ndata: ${date.toISOString()}\n\n`);
@@ -86,6 +87,8 @@ app.get('/sse-console', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // immediate arrow function makes & sends msg.
+  // interval repeats function periodically
   const sendRandomLine = () => {
     const msg = makeConsoleMessage();
     res.write(msg);
@@ -108,10 +111,11 @@ app.get('/sse-panel', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
 
   // sets up two repeating event streams, a slow one with new templates,
-  // and a fast one with new updates for the template.
+  // and a faster one with new updates for the template.
   // update variable names match HTML id attributes in the panel
   // template; else ignored
-  
+
+  // templates
   const sendPanelTemplateHTML = () => {
     const msg = makeTemplateMessage();
     res.write(msg);
@@ -119,28 +123,36 @@ app.get('/sse-panel', (req, res) => {
   sendPanelTemplateHTML(); // send first one; set up series
   const templateIntervalId = setInterval(sendPanelTemplateHTML, templateTick);
 
-  const sendPanelUpdateHTML = () => {
-    // send synthetic values for elements in the template;
+  // updates (two values, two intervals)
+  const sendSlowPanelUpdateHTML = () => {
+    let value = `${faker.word.verb()} ${faker.word.noun()}`;
+    let msg = makeUpdateMessage('func-name', value);
+    res.write(msg);
+  };
+  const slowUpdateIntervalId = setInterval(
+    sendSlowPanelUpdateHTML,
+    slowUpdateTick
+  );
+
+  const sendFastPanelUpdateHTML = () => {
     let value = faker.company.buzzPhrase();
     let msg = makeUpdateMessage('member-name', value);
     res.write(msg);
-
-    value = `${faker.word.verb()} ${faker.word.noun()}`;
-    msg = makeUpdateMessage('func-name', value); 
-    res.write(msg);
-  }; // allow time to see inital template values, set up series
-  const updateIntervalId = setInterval(sendPanelUpdateHTML, updateTick);
+  };
+  const fastUpdateIntervalId = setInterval(
+    sendFastPanelUpdateHTML,
+    fastUpdateTick
+  );
 
   // stop if the connection is closed
   req.on('close', () => {
     clearInterval(templateIntervalId);
-    clearInterval(updateIntervalId);
+    clearInterval(fastUpdateIntervalId);
+    clearInterval(slowUpdateIntervalId);
     res.end();
     console.log('closed /sse-panel connection');
   });
 });
-
-
 
 // HTML page endpoint
 app.get('/3-channel-page', (req, res) => {
