@@ -56,7 +56,7 @@ class ServerConsole extends LitElement {
   }
 
   scrollToBottom () {
-    console.log('scroll to bottom')
+ //   console.log('scroll to bottom')
   const scrollContainer = this.shadowRoot.querySelector('.message-container');
   scrollContainer.scrollTop = scrollContainer.scrollHeight;
   }

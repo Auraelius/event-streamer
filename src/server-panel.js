@@ -1,4 +1,14 @@
 import { LitElement, html, css } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+
+/**
+ * previous two examples (server-console, server-clock) just displayed text
+ * this one is more complicated
+ * the template message contains html (not a template at this time, just
+ * a div and the div's contents). that data text has to be converted to
+ * live html. We are using the `lit` library, so we have the `html`
+ * template literal and the `unsafeHTML()` converter as tools
+ */
 
 class ServerPanel extends LitElement {
   static styles = css`
@@ -33,30 +43,28 @@ class ServerPanel extends LitElement {
     // in the product we'll take a more secure approach
 
     this.evtSource.addEventListener('template', (event) => {
-      this.panelContent = html`${event.data}`;
+      this.panelContent = this.convertToHtml(event.data);
       this.requestUpdate();
     });
 
-    // for update events, the id: field is the id of the element to be
-    // updated and the data: field is the new content for just that
-    // field. here we're just slapping bold tags around it; in the
-    // product we'll add a class.
+    // for update events, data field can contain several sub-fields.
+    // these are stored as JSON. The data field as a whole is one JSON
+    // object.
+  
 
     this.evtSource.addEventListener('update', (event) => {
-      const element = this.shadowRoot.querySelector(`#${event.id}`);
+      console.debug(`update event: data: ${event.data}`);
+      
+      // pull two expected variables out of JSON data field
+      const { id, value } = JSON.parse(event.data);
+      const element = this.shadowRoot.querySelector(`#${id}`);
       if (element) {
-        element.innerHTML = `<b>${event.data}</b>`;
+        element.innerHTML = `${value}`;
+      } else {
+        console.error(`Element with ID ${id} not found`);
       }
       this.requestUpdate();
     });
-  }
-
-  // this isn't strictly required in our product because a new document
-  // will wipe away the one this component is in. but in case somebody
-  // uses this differently...
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.evtSource.close();
   }
 
   //
@@ -69,12 +77,44 @@ class ServerPanel extends LitElement {
     // this.scrollToBottom();
   }
 
+  // this isn't strictly required in our product because a new document
+  // will wipe away the one this component is in. but in case somebody
+  // uses this differently...
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.evtSource.close();
+  }
+
+  /* * subroutines * * * * * * * * * * */
+  
+  // try to convert text to elements for later use in lit
+  convertToHtml (text) {
+    console.debug(`convertToHtml: attempting conversion of text: ${text}`);
+    let parsedHtml = {}; // we'll be getting a bunch of stuff back
+    const parser = new DOMParser(); // from our HTML parser
+    let htmlBuffer = html``; // and we'll put it here
+    try {
+      parsedHtml = parser.parseFromString(text, 'text/html');
+    } catch (error) {
+      throw new Error(
+        'convertToHtml: could not parse text',
+      );
+    }
+    htmlBuffer = html`${unsafeHTML(parsedHtml.body.innerHTML)}`;
+    console.debug(
+      `convertToHtml: returning htmlBuffer.strings: ${htmlBuffer.strings}`,
+    );
+    return htmlBuffer;
+  }
+
+
   // this shouldn't be needed in the panel
   // scrollToBottom() {
   //   console.log('scroll to bottom');
   //   const scrollContainer = this.shadowRoot.querySelector('.message-container');
   //   scrollContainer.scrollTop = scrollContainer.scrollHeight;
   // }
-}
+  
+} // class ServerPanel 
 
 customElements.define('server-panel', ServerPanel);

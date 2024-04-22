@@ -2,73 +2,45 @@ import express from 'express';
 import path from 'path';
 import morgan from 'morgan'; // logging middleware
 import { faker } from '@faker-js/faker';
+import {
+  makeConsoleMessage,
+  makeTemplateMessage,
+  makeUpdateMessage,
+} from './server-utils.js';
 
+/**
+ * this node/express-based server has two basic responsibilities
+ * 1. serve an html page with some web components (endpoint: `/page`)
+ *    along with the JavaScript for those components
+ * 2. Serve a variety of server-sent event connections with synthetic data
+ *    (endpoints: `/sse-*`)
+ * 
+ * Quick intro to reading express code: 
+ * `req` is the HTTP request. `res` is the HTTP response.  The server
+ * routines each convert an HTTP request into an HTTP response.
+ * 
+ * `res.setHeader()` sets HTTP headers for the response, 
+ * `res.write()` sends HTTP text as a response but keeps connection open. 
+ * `res.send()` sends HTTP text as a response & closes the connection.
+ * `res.end()` closes the connection.
+ */
 
 const app = express();
 const PORT = 3000;
 
-// how fast the random stuff is sent
-const clockTick = 100;
-const consoleTick = 1000;
-const templateTick = 10000;
-// const updateTick = 500;
 
 
+// different synthetic events are sent on different intervals
+// values that are multiples of each other will create 'simultaneous' 
+// events (sorted out by the JS single-threaded event loop). 
+// we'll see what happens
 
-// subroutines
-/**
- * 
- * @returns {string} fake sentence(s) under 80 chars
- */
-function generateRandomConsoleLine() {
-  let line = '';
-  while (line.length < 80) {
-    const randomSentence = faker.lorem.sentence();
-    if (line.length + randomSentence.length > 80) break; 
-    line += (line.length > 0 ? ' ' : '') + randomSentence;
-  }
-  return line;
-}
-/**
- * 
- * @returns {string} one of three sample templates 
- * formatted as a SSE event message data field
- */
-function generateNewTemplate () { 
-  const templateID = Math.floor(Math.random() * 3) + 1;
-  let lines = ``;
-  switch (templateID) {
-    case 3:
-      lines = `data:<i>Function Name Placeholder</i>
-data:<h1>Please wait  ...</h1>
-data:<p>The zOSEM tables <i>really</i> are being rebuilt. Trust us.</p>
-data:<p>Generating function: <span id="func-name">First Function Value</span></p>
-data:<p>Depending on the options you have chosen, this process may take some time.</p>
-data:<p>Currently processing member: <span id="member-name">First Member Value</span></p>
-`; // newline terminated
-      break;
-    case 2:
-      lines = `data:<i>Function Name Placeholder</i>
-data:<h1>Please wait ...</h1>
-data:<p>The zOSEM tables really <i>are</i> being rebuilt.</p>
-data:<p>Generating function: <span id="func-name">First Function Value</span></p>
-data:<p>Depending on the options you have chosen, this process may take some time.</p>
-data:<p>Currently processing member: <span id="member-name">First Member Value</span></p>
-`; // newline terminated
-      break;
-    case 1:
-    default:
-      lines = `data:<i>Function Name Placeholder</i>
-data:<h1>Please wait...</h1>
-data:<p>The zOSEM tables are being rebuilt.</p>
-data:<p>Generating function: <span id="func-name">First Function Value</span></p>
-data:<p>Depending on the options you have chosen, this process may take some time.</p>
-data:<p>Currently processing member: <span id="member-name">First Member Value</span></p>
-`; // newline terminated
-      break;
-  }
-  return lines;
-}
+const clockTick = 100; // a new timestamp every 1/10 second
+const consoleTick = 1000; // a new line of text every second
+const templateTick = 3000; // a new panel every 10 seconds
+const updateTick = 1000; // new panel values every second
+
+
 
 // set up express middleware
 // set up simple default logging of all requests
@@ -88,7 +60,7 @@ app.use((req, res, next) => {
 // SSE timestamp endpoint - sends a timestamp often enough to see the
 // seconds change on correct tempo
 app.get('/sse-timestamp', (req, res) => {
-  console.log('caught a request at /sse-timestamp');
+  console.debug('caught a request at /sse-timestamp');
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -103,7 +75,7 @@ app.get('/sse-timestamp', (req, res) => {
   req.on('close', () => {
     clearInterval(intervalId);
     res.end();
-    console.log('closed /sse-timestamp connection');
+    console.debug('closed /sse-timestamp connection');
   });
 });
 
@@ -115,8 +87,8 @@ app.get('/sse-console', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
 
   const sendRandomLine = () => {
-    const line = generateRandomConsoleLine();
-    res.write(`event:console\ndata: ${line}\n\n`);
+    const msg = makeConsoleMessage();
+    res.write(msg);
   };
   const intervalId = setInterval(sendRandomLine, consoleTick);
 
@@ -135,19 +107,34 @@ app.get('/sse-panel', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // sets up two repeating event streams, a slow one with new templates,
+  // and a fast one with new updates for the template.
+  // update variable names match HTML id attributes in the panel
+  // template; else ignored
+  
   const sendPanelTemplateHTML = () => {
-    console.log('sending a template')
-    const lines = generateNewTemplate(); // newline terminated
-    res.write(`event:template\n${lines}\n`);
+    const msg = makeTemplateMessage();
+    res.write(msg);
   };
-  const intervalId = setInterval(sendPanelTemplateHTML, templateTick);
+  sendPanelTemplateHTML(); // send first one; set up series
+  const templateIntervalId = setInterval(sendPanelTemplateHTML, templateTick);
 
-  // todo iterate through template sets to show it changing
+  const sendPanelUpdateHTML = () => {
+    // send synthetic values for elements in the template;
+    let value = faker.company.buzzPhrase();
+    let msg = makeUpdateMessage('member-name', value);
+    res.write(msg);
 
-  // todo send a series of updates on a faster tempo
+    value = `${faker.word.verb()} ${faker.word.noun()}`;
+    msg = makeUpdateMessage('func-name', value); 
+    res.write(msg);
+  }; // allow time to see inital template values, set up series
+  const updateIntervalId = setInterval(sendPanelUpdateHTML, updateTick);
+
   // stop if the connection is closed
   req.on('close', () => {
-    clearInterval(intervalId);
+    clearInterval(templateIntervalId);
+    clearInterval(updateIntervalId);
     res.end();
     console.log('closed /sse-panel connection');
   });
@@ -156,7 +143,7 @@ app.get('/sse-panel', (req, res) => {
 
 
 // HTML page endpoint
-app.get('/page', (req, res) => {
+app.get('/3-channel-page', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -164,8 +151,6 @@ app.get('/page', (req, res) => {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Test Page</title>
-      <!-- <script src="/index.js"></script>-->
-      <!-- <link rel="stylesheet" href="/index.css">-->
     </head>
     <body>
       <h1>Server sent events test page</h1>

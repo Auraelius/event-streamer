@@ -7,7 +7,8 @@
     "start": "node server.js",
     "build:clock": "parcel build src/server-clock.js --dist-dir dist --public-url ./",
     "build:console": "parcel build src/server-console.js --dist-dir dist --public-url ./",
-    "build" : "parcel build src/*.js --dist-dir dist --public-url ./"
+    "build:panel": "parcel build src/server-panel.js --dist-dir dist --public-url ./",
+    "build": "parcel build src/*.js --dist-dir dist --public-url ./"
   },
   "keywords": [
     "express",
