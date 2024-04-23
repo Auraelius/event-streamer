@@ -1,7 +1,8 @@
+// these routines implement the message protocol for our server-sent events
+
 import { faker } from '@faker-js/faker';
 
 /**
- *
  * @returns {string} fake sentence(s) under 80 chars
  */
 export function makeConsoleMessage() {
@@ -18,7 +19,7 @@ export function makeConsoleMessage() {
  *
  * @returns {string} one of three sample templates
  * formatted as a SSE 'template' event with message data field
- * chosen at random
+ * chosen at random from three options. all have the same variables
  */
 export function makeTemplateMessage() {
   const templateID = Math.floor(Math.random() * 3) + 1;
@@ -58,7 +59,7 @@ data:<p>Currently processing member: <b><span id="member-name">First Member Valu
 }
 
 /**
- * @returns a multiline string coded for an update SSE message
+ * @returns a multiline string coded for an 'update' SSE message
  *
  * @export
  * @param {string} id the html id of the element to be updated

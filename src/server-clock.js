@@ -12,7 +12,7 @@ class ServerClock extends LitElement {
 
   static properties = {
     timestamp: { type: String },
-    href:{type: String}
+    href: { type: String },
   };
 
   constructor() {
@@ -23,9 +23,7 @@ class ServerClock extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    
     this.evtSource = new EventSource(this.href);
-
     this.evtSource.addEventListener('timestamp', (event) => {
       this.timestamp = event.data;
       this.requestUpdate();

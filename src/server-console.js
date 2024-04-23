@@ -18,18 +18,20 @@ class ServerConsole extends LitElement {
 
   static properties = {
     messages: { type: Array },
+    href: { type: String },
   };
 
   constructor() {
     super();
     this.messages = ['Connecting...'];
+    this.href = '/sse-console'; // defaults to it's own channel
   }
 
   connectedCallback() {
     super.connectedCallback();
-
-    this.evtSource = new EventSource('/sse-console');
-
+    // set up SSE channel
+    this.evtSource = new EventSource(this.href);
+    // listen for only our type of events
     this.evtSource.addEventListener('console', (event) => {
       this.messages = [...this.messages, event.data];
       this.requestUpdate();
@@ -42,7 +44,7 @@ class ServerConsole extends LitElement {
   }
 
   // puts each message on its own line)
-  render () {
+  render() {
     // console.log('render');
     return html`
       <div class="message-container">
@@ -50,15 +52,15 @@ class ServerConsole extends LitElement {
       </div>
     `;
   }
-  updated () {
+  updated() {
     // console.log('updated');
-   this.scrollToBottom();
+    this.scrollToBottom();
   }
 
-  scrollToBottom () {
- //   console.log('scroll to bottom')
-  const scrollContainer = this.shadowRoot.querySelector('.message-container');
-  scrollContainer.scrollTop = scrollContainer.scrollHeight;
+  scrollToBottom() {
+    //   console.log('scroll to bottom')
+    const scrollContainer = this.shadowRoot.querySelector('.message-container');
+    scrollContainer.scrollTop = scrollContainer.scrollHeight;
   }
 }
 
