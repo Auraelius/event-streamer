@@ -1,5 +1,5 @@
 
-This is an experiment to  learn about server-sent events. It contains
+This is an experiment, a lab toy, to  learn about server-sent events. It contains
 three different types of SSE listener web components and an SSE server
 that spits out messages.
 
@@ -14,6 +14,14 @@ this node/express-based server has two basic responsibilities
 The web components were built with the `lit` library and bundled with
 `parcel`, which results in as simple a set of code as I could come up
 with. 
+
+# Fragile; definitely a toy
+This experiment serves one page, which then requests one or more SSE
+connections. It makes no attempt to manage (close/open) connections across pages.
+
+Don't expect too much and you won't be disappointed. Too much back and
+forth with the browser and you'll seize up the server.
+
 
 # To play with this 
 

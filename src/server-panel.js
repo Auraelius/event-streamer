@@ -44,6 +44,7 @@ class ServerPanel extends LitElement {
     // in the product we'll take a more secure approach
 
     this.evtSource.addEventListener('template', (event) => {
+      console.debug(`template event: data: ${event.data}`);
       this.panelContent = this.convertToHtml(event.data);
       this.requestUpdate();
     });
@@ -53,7 +54,7 @@ class ServerPanel extends LitElement {
     // object.
 
     this.evtSource.addEventListener('update', (event) => {
-      // console.debug(`update event: data: ${event.data}`);
+      console.debug(`update event: data: ${event.data}`);
       // pull two expected variables out of JSON data field
       const { id, value } = JSON.parse(event.data);
       const element = this.shadowRoot.querySelector(`#${id}`);
@@ -97,9 +98,6 @@ class ServerPanel extends LitElement {
     }
     // `lit` sanitization & packaging
     htmlBuffer = html`${unsafeHTML(parsedHtml.body.innerHTML)}`;
-    // console.debug(
-    //   `convertToHtml: returning htmlBuffer.strings: ${htmlBuffer.strings}`
-    // );
     return htmlBuffer;
   }
 } // class ServerPanel 

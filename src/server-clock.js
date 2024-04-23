@@ -18,7 +18,7 @@ class ServerClock extends LitElement {
   constructor() {
     super();
     this.timestamp = 'Connecting...';
-    this.href = '/sse-timestamp'; // defaults to it's own channel
+    this.href = ''; // defaults to it's own channel
   }
 
   connectedCallback() {

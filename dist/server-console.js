@@ -28,7 +28,7 @@
       overflow-y: auto;
       height: 100%; /* Ensure it takes the full height of the host */
     }
-  `;static properties={messages:{type:Array}};constructor(){super(),this.messages=["Connecting..."]}connectedCallback(){super.connectedCallback(),this.evtSource=new EventSource("/sse-console"),this.evtSource.addEventListener("console",t=>{this.messages=[...this.messages,t.data],this.requestUpdate()})}disconnectedCallback(){super.disconnectedCallback(),this.evtSource.close()}render(){return(0,h.html)`
+  `;static properties={messages:{type:Array},href:{type:String}};constructor(){super(),this.messages=["Connecting..."],this.href="/sse-console"}connectedCallback(){super.connectedCallback(),this.evtSource=new EventSource(this.href),this.evtSource.addEventListener("console",t=>{this.messages=[...this.messages,t.data],this.requestUpdate()})}disconnectedCallback(){super.disconnectedCallback(),this.evtSource.close()}render(){return(0,h.html)`
       <div class="message-container">
         ${this.messages.map(t=>(0,h.html)`${t}<br />`)}
       </div>

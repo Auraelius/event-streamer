@@ -161,6 +161,13 @@ app.get('/all-in-one', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // clock
+  const sendTimestamp = () => {
+    const date = new Date();
+    res.write(`event:timestamp\ndata: ${date.toISOString()}\n\n`);
+  };
+  const clockIntervalId = setInterval(sendTimestamp, clockTick);
+  
   // console
   const sendRandomLine = () => {
     const msg = makeConsoleMessage();
@@ -245,7 +252,7 @@ app.get('/3-channel-page', (req, res) => {
       <p>This page has three components, each listening to its own default endpoint on the same origin.</p>
 
       <p>Here's a server clock: </p>
-      <server-clock></server-clock>
+      <server-clock href="/sse-timestamp"></server-clock>
       <script type="module" src="/server-clock.js"></script>
 
       <p>Here's a server console: </p>

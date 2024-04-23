@@ -33,6 +33,7 @@ class ServerConsole extends LitElement {
     this.evtSource = new EventSource(this.href);
     // listen for only our type of events
     this.evtSource.addEventListener('console', (event) => {
+      console.debug('console event. data:', event.data);
       this.messages = [...this.messages, event.data];
       this.requestUpdate();
     });
@@ -43,22 +44,20 @@ class ServerConsole extends LitElement {
     this.evtSource.close();
   }
 
-  // puts each message on its own line)
+  // the `map` puts each message  in the array on its own line
   render() {
-    // console.log('render');
     return html`
       <div class="message-container">
         ${this.messages.map((message) => html`${message}<br />`)}
       </div>
     `;
   }
+
   updated() {
-    // console.log('updated');
     this.scrollToBottom();
   }
 
   scrollToBottom() {
-    //   console.log('scroll to bottom')
     const scrollContainer = this.shadowRoot.querySelector('.message-container');
     scrollContainer.scrollTop = scrollContainer.scrollHeight;
   }
