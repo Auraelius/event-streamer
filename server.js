@@ -80,6 +80,29 @@ app.get('/sse-timestamp', (req, res) => {
   });
 });
 
+app.get('/sse-simple', (req, res) => {
+  console.debug('caught a request at /sse-simple');
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // immediate arrow function makes & sends msg.
+  // interval repeats function periodically
+  const sendSimple = () => {
+    const date = new Date();
+    res.write(`data: ${date.toISOString()}\n\n`);
+  };
+  const clockIntervalId = setInterval(sendSimple, consoleTick);
+
+  // stop if the connection is closed
+  req.on('close', () => {
+    clearInterval(clockIntervalId);
+    res.end();
+    console.debug('closed /sse-timestamp connection');
+  });
+});
+
+
 // SSE console endpoint - sends a series of text lines
 app.get('/sse-console', (req, res) => {
   console.log('caught a request at /sse-console');
@@ -234,6 +257,9 @@ app.get('/', (req, res) => {
         <li><a href = "/3-channel-page">listening to three channels/endpoints</a></li>
         <li><a href = "/1-channel-page">listening to one channel/endpoint</a></li>
       </ul>
+
+      <p>For the simplest possible use case, here's
+      <a href = "/simple"> a page with a SSE-receiving div</a></p> 
     </body>
     </html>
   `);
@@ -294,6 +320,38 @@ app.get('/1-channel-page', (req, res) => {
       <server-panel href="/all-in-one"></server-panel>
       <script type="module" src="/server-panel.js"></script>
 
+    </body>
+    </html>
+  `);
+});
+
+app.get('/simple', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Test Page - simple</title>
+    </head>
+    <body>
+      <h1>Server sent events<br>simple</h1>
+      <p>open the console</p>
+      
+      <p>This page has one output div:</p>
+      <div id="output"></div>
+
+    <script >
+      const evtSource = new EventSource('/sse-simple');
+      
+      evtSource.onmessage = (event) => {
+        console.log(event.data);
+        const message = event.data;
+        const output = document.getElementById('output');
+        const messages = output.innerHTML;
+        output.innerHTML = messages  + '<br>' + message;
+      };
+    </script>
     </body>
     </html>
   `);
