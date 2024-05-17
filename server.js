@@ -102,7 +102,6 @@ app.get('/sse-simple', (req, res) => {
   });
 });
 
-
 // SSE console endpoint - sends a series of text lines
 app.get('/sse-console', (req, res) => {
   console.log('caught a request at /sse-console');
@@ -190,7 +189,7 @@ app.get('/all-in-one', (req, res) => {
     res.write(`event:timestamp\ndata: ${date.toISOString()}\n\n`);
   };
   const clockIntervalId = setInterval(sendTimestamp, clockTick);
-  
+
   // console
   const sendRandomLine = () => {
     const msg = makeConsoleMessage();
@@ -256,6 +255,7 @@ app.get('/', (req, res) => {
       <ul>
         <li><a href = "/3-channel-page">listening to three channels/endpoints</a></li>
         <li><a href = "/1-channel-page">listening to one channel/endpoint</a></li>
+        <li><a href = "/dialog">server panel in a dialog box</a></li>
       </ul>
 
       <p>For the simplest possible use case, here's
@@ -319,9 +319,138 @@ app.get('/1-channel-page', (req, res) => {
       <p>Here's a server panel: </p>
       <server-panel href="/all-in-one"></server-panel>
       <script type="module" src="/server-panel.js"></script>
-
     </body>
     </html>
+  `);
+});
+
+app.get('/dialog', (req, res) => {
+  res.send(`
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/server-panel.js"></script>
+    <title>popup</title>
+  </head>
+
+  <body>
+    <button popovertarget="mypopover">click me to pop up
+    </button>
+
+    <div id="mypopover" popover>Popover content</div>
+
+    <button id="openDialogBtn">Click me to open dialog</button>
+    
+    <dialog id="dialog">
+      <p>Dialog content</p>
+      <server-panel href="/all-in-one"></server-panel>
+      <button id="closeDialogBtn">Close</button>
+    </dialog>
+    
+    <script>
+      const dialog = document.getElementById('dialog');
+      const openDialogBtn = document.getElementById('openDialogBtn');
+      const closeDialogBtn = document.getElementById('closeDialogBtn');
+
+      openDialogBtn.addEventListener('click', () => {
+        dialog.showModal();
+      });
+
+      closeDialogBtn.addEventListener('click', () => {
+        dialog.close();
+      });
+    </script>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+    ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+    tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+    aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+    Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+        ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+        tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+        aliquid!</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+    ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+    tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+    aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+    Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+        ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+        tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+        aliquid!</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p>
+      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+    ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+    tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+    aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+    Sit in a
+      ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+      tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+      aliquid!</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+      Sit in a
+        ipsa nam, ullam nihil, assumenda facilis iste quibusdam obcaecati
+        tenetur quos recusandae ut, officiis quia nostrum quis dignissimos
+        aliquid!</p>
+  </body>
+
+  </html>
   `);
 });
 
@@ -356,6 +485,11 @@ app.get('/simple', (req, res) => {
     </html>
   `);
 });
+
+/*
+oneliner
+const es = new EventSource('/event'); es.onmessage = (event) => {console.log('.');}
+*/
 
 // Listen on the specified port
 app.listen(PORT, () => {
